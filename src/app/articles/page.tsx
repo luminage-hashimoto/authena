@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import ArticleCard from "@/components/ui/ArticleCard";
-import { getAllArticles, getArticlesByCategory } from "@/lib/articles";
+import { getAllArticles, getArticlesByCategory } from "@/lib/data";
 
 const categories = ["Car", "Watch", "Travel", "Beauty", "Real Estate", "Finance"];
 
@@ -13,11 +13,11 @@ interface Props {
   searchParams: { category?: string };
 }
 
-export default function ArticlesPage({ searchParams }: Props) {
+export default async function ArticlesPage({ searchParams }: Props) {
   const activeCategory = searchParams.category;
   const articles = activeCategory
-    ? getArticlesByCategory(activeCategory)
-    : getAllArticles();
+    ? await getArticlesByCategory(activeCategory)
+    : await getAllArticles();
 
   return (
     <div className="min-h-screen">

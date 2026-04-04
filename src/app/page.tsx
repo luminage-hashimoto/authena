@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import ArticleCard from "@/components/ui/ArticleCard";
-import { getAllArticles, getFeaturedArticles } from "@/lib/articles";
+import { getAllArticles, getFeaturedArticles } from "@/lib/data";
 
 const categories = [
   { name: "Car", ja: "クルマ", icon: "◈" },
@@ -12,9 +12,9 @@ const categories = [
   { name: "Finance", ja: "資産", icon: "◈" },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedArticles();
-  const allArticles = getAllArticles();
+export default async function HomePage() {
+  const featured = await getFeaturedArticles();
+  const allArticles = await getAllArticles();
   const [hero, ...subFeatured] = featured;
   const recentArticles = allArticles.slice(3);
 

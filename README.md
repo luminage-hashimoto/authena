@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Authena（オーセナ）
 
-## Getting Started
+富裕層向けWebメディア。上質な消費には、上質な情報がいる。
 
-First, run the development server:
+Operated by Luminage Inc.
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **Fonts**: Cormorant Garamond / Noto Serif JP / DM Sans
+- **Deploy**: Vercel
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | トップページ |
+| `/articles` | 記事一覧（カテゴリフィルター付き） |
+| `/articles/[slug]` | 記事詳細 |
+
+## Categories
+
+Car / Watch / Travel / Beauty / Real Estate / Finance
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev     # localhost:3000
+npm run build   # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy to Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx vercel
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## CMS Integration
 
-## Learn More
+現在はダミーデータ（`src/lib/articles.ts`）で動作。CMSを連携する際は `Article` 型（`src/types/index.ts`）に合わせてデータ取得関数を差し替えてください。
 
-To learn more about Next.js, take a look at the following resources:
+## Design Tokens
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Token | Value | Usage |
+|-------|-------|-------|
+| `base` | `#f7f5f1` | Background |
+| `gold` | `#a8854a` | Accent |
+| `ink` | `#1a1814` | Text |
+| `muted` | `#6b6456` | Subdued text |

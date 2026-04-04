@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { getArticleBySlug, getAllArticles } from "@/lib/articles";
+import { getArticleBySlug, getAllArticles } from "@/lib/data";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 interface Props {
@@ -10,12 +10,12 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const articles = getAllArticles();
+  const articles = await getAllArticles();
   return articles.map((a) => ({ slug: a.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = getArticleBySlug(params.slug);
+  const article = await getArticleBySlug(params.slug);
   if (!article) return {};
   return {
     title: article.title,
@@ -28,11 +28,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ArticlePage({ params }: Props) {
-  const article = getArticleBySlug(params.slug);
+export default async function ArticlePage({ params }: Props) {
+  const article = await getArticleBySlug(params.slug);
   if (!article) notFound();
 
-  const allArticles = getAllArticles();
+  const allArticles = await getAllArticles();
   const related = allArticles
     .filter((a) => a.category === article.category && a.id !== article.id)
     .slice(0, 3);
