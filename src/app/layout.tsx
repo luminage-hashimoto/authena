@@ -38,6 +38,10 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     type: "website",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
