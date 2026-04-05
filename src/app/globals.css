@@ -43,7 +43,7 @@ body {
 
   .prose-authena p {
     font-family: var(--font-noto), serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
     line-height: 2;
     color: #1a1814;
     margin-bottom: 1.5rem;
@@ -65,7 +65,7 @@ body {
 
   .prose-authena blockquote {
     font-family: var(--font-noto), serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
     line-height: 2;
     color: #6b6456;
     border-left: 2px solid #a8854a;
