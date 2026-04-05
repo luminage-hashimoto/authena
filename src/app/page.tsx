@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import ArticleCard from "@/components/ui/ArticleCard";
-import { getAllArticles, getFeaturedArticles } from "@/lib/data";
+import { getAllArticles } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
