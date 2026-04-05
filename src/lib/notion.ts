@@ -1,32 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Client } from "@notionhq/client";
-import { NotionToMarkdown } from "notion-to-md";
 import { Article, Category } from "@/types";
 
-const notion = new Client({
-  auth: process.env.NOTION_TOKEN,
-});
+const NOTION_TOKEN = process.env.NOTION_TOKEN!;
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID!;
 
-const n2m = new NotionToMarkdown({ notionClient: notion });
-
-// MarkdownをシンプルなHTMLに変換
-function mdToHtml(md: string): string {
-  return md
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .split(/\n\n+/)
-    .map((block) => {
-      if (block.startsWith("<h")) return block;
-      if (block.trim() === "") return "";
-      return `<p>${block.replace(/\n/g, "<br>")}</p>`;
-    })
-    .filter(Boolean)
-    .join("\n");
+async function notionFetch(endpoint: string, body?: object) {
+  const res = await fetch(`https://api.notion.com/v1${endpoint}`, {
+    method: body ? "POST" : "GET",
+    headers: {
+      Authorization: `Bearer ${NOTION_TOKEN}`,
+      "Notion-Version": "2022-06-28",
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Notion API error: ${res.status} ${err}`);
+  }
+  return res.json();
 }
 
-// Notionのプロパティからテキストを取得するヘルパー
 function getText(prop: any): string {
   if (!prop) return "";
   if (prop.type === "title") return prop.title.map((t: any) => t.plain_text).join("");
@@ -40,11 +35,40 @@ function getText(prop: any): string {
   return "";
 }
 
-export async function getArticlesFromNotion(): Promise<Article[]> {
-  const dataSourceId = process.env.NOTION_DATABASE_ID!;
+async function getPageContent(pageId: string): Promise<string> {
+  const data = await notionFetch(`/blocks/${pageId}/children`);
+  const blocks = data.results ?? [];
 
-  const response = await (notion as any).dataSources.query({
-    data_source_id: dataSourceId,
+  const html = blocks.map((block: any) => {
+    const richText = (items: any[]) =>
+      items.map((t: any) => t.plain_text).join("");
+
+    switch (block.type) {
+      case "heading_1":
+        return `<h2>${richText(block.heading_1.rich_text)}</h2>`;
+      case "heading_2":
+        return `<h2>${richText(block.heading_2.rich_text)}</h2>`;
+      case "heading_3":
+        return `<h3>${richText(block.heading_3.rich_text)}</h3>`;
+      case "paragraph":
+        const text = richText(block.paragraph.rich_text);
+        return text ? `<p>${text}</p>` : "";
+      case "bulleted_list_item":
+        return `<p>・${richText(block.bulleted_list_item.rich_text)}</p>`;
+      case "numbered_list_item":
+        return `<p>${richText(block.numbered_list_item.rich_text)}</p>`;
+      case "quote":
+        return `<p><em>${richText(block.quote.rich_text)}</em></p>`;
+      default:
+        return "";
+    }
+  }).filter(Boolean).join("\n");
+
+  return html;
+}
+
+export async function getArticlesFromNotion(): Promise<Article[]> {
+  const data = await notionFetch(`/databases/${NOTION_DATABASE_ID}/query`, {
     filter: {
       property: "Published",
       checkbox: { equals: true },
@@ -54,16 +78,10 @@ export async function getArticlesFromNotion(): Promise<Article[]> {
 
   const articles: Article[] = [];
 
-  for (const page of response.results) {
-    if (page.object !== "page") continue;
-    const props = (page as any).properties;
-
-    const mdBlocks = await n2m.pageToMarkdown(page.id);
-    const mdString = n2m.toMarkdownString(mdBlocks);
-    const body = mdToHtml(mdString.parent);
-
+  for (const page of data.results ?? []) {
+    const props = page.properties;
+    const body = await getPageContent(page.id);
     const tagsRaw = getText(props["Tags"]);
-    const tags = tagsRaw ? tagsRaw.split(",").map((t: string) => t.trim()) : [];
 
     articles.push({
       id: page.id,
@@ -87,7 +105,7 @@ export async function getArticlesFromNotion(): Promise<Article[]> {
       readTime: Number(getText(props["ReadTime"])) || 5,
       heroImage: getText(props["HeroImage"]),
       featured: getText(props["Featured"]) === "true",
-      tags,
+      tags: tagsRaw ? tagsRaw.split(",").map((t: string) => t.trim()) : [],
     });
   }
 
