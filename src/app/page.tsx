@@ -15,9 +15,12 @@ const categories = [
 ];
 
 export default async function HomePage() {
-  const featured = await getFeaturedArticles();
   const allArticles = await getAllArticles();
+  const featuredArticles = allArticles.filter((a) => a.featured);
+  const featured = featuredArticles.length > 0 ? featuredArticles : allArticles;
   const [hero, ...subFeatured] = featured;
+
+  if (!hero) return null;
   const recentArticles = allArticles.slice(3);
 
   return (
