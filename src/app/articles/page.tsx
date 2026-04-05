@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import ArticleCard from "@/components/ui/ArticleCard";
 import { getAllArticles, getArticlesByCategory } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 const categories = ["Car", "Watch", "Travel", "Beauty", "Real Estate", "Finance"];
 
 export const metadata: Metadata = {

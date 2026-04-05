@@ -3,6 +3,8 @@ import Image from "next/image";
 import ArticleCard from "@/components/ui/ArticleCard";
 import { getAllArticles, getFeaturedArticles } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 const categories = [
   { name: "Car", ja: "クルマ", icon: "◈" },
   { name: "Watch", ja: "時計", icon: "◎" },
