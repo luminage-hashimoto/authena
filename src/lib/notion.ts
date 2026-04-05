@@ -35,36 +35,73 @@ function getText(prop: any): string {
   return "";
 }
 
+async function getTableRows(blockId: string): Promise<string> {
+  const data = await notionFetch(`/blocks/${blockId}/children`);
+  const rows = data.results ?? [];
+  const htmlRows = rows.map((row: any, i: number) => {
+    const cells = row.table_row?.cells ?? [];
+    const tag = i === 0 ? "th" : "td";
+    const cols = cells.map((cell: any) =>
+      `<${tag}>${cell.map((t: any) => t.plain_text).join("")}</${tag}>`
+    ).join("");
+    return `<tr>${cols}</tr>`;
+  });
+  return `<table>${htmlRows.join("")}</table>`;
+}
+
 async function getPageContent(pageId: string): Promise<string> {
   const data = await notionFetch(`/blocks/${pageId}/children`);
   const blocks = data.results ?? [];
 
-  const html = blocks.map((block: any) => {
-    const richText = (items: any[]) =>
-      items.map((t: any) => t.plain_text).join("");
+  const richText = (items: any[]) =>
+    items.map((t: any) => {
+      let text = t.plain_text;
+      if (t.annotations?.bold) text = `<strong>${text}</strong>`;
+      if (t.annotations?.italic) text = `<em>${text}</em>`;
+      return text;
+    }).join("");
 
+  const htmlParts: string[] = [];
+
+  for (const block of blocks) {
     switch (block.type) {
       case "heading_1":
-        return `<h2>${richText(block.heading_1.rich_text)}</h2>`;
+        htmlParts.push(`<h2>${richText(block.heading_1.rich_text)}</h2>`);
+        break;
       case "heading_2":
-        return `<h2>${richText(block.heading_2.rich_text)}</h2>`;
+        htmlParts.push(`<h2>${richText(block.heading_2.rich_text)}</h2>`);
+        break;
       case "heading_3":
-        return `<h3>${richText(block.heading_3.rich_text)}</h3>`;
-      case "paragraph":
+        htmlParts.push(`<h3>${richText(block.heading_3.rich_text)}</h3>`);
+        break;
+      case "paragraph": {
         const text = richText(block.paragraph.rich_text);
-        return text ? `<p>${text}</p>` : "";
+        if (text) htmlParts.push(`<p>${text}</p>`);
+        break;
+      }
       case "bulleted_list_item":
-        return `<p>・${richText(block.bulleted_list_item.rich_text)}</p>`;
+        htmlParts.push(`<p>・${richText(block.bulleted_list_item.rich_text)}</p>`);
+        break;
       case "numbered_list_item":
-        return `<p>${richText(block.numbered_list_item.rich_text)}</p>`;
+        htmlParts.push(`<p>${richText(block.numbered_list_item.rich_text)}</p>`);
+        break;
       case "quote":
-        return `<p><em>${richText(block.quote.rich_text)}</em></p>`;
+        htmlParts.push(`<blockquote>${richText(block.quote.rich_text)}</blockquote>`);
+        break;
+      case "divider":
+        htmlParts.push(`<hr>`);
+        break;
+      case "table": {
+        const tableHtml = await getTableRows(block.id);
+        htmlParts.push(tableHtml);
+        break;
+      }
       default:
-        return "";
+        break;
     }
-  }).filter(Boolean).join("\n");
+  }
 
-  return html;
+  return htmlParts.join("\n");
 }
 
 export async function getArticlesFromNotion(): Promise<Article[]> {
